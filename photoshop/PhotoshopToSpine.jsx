@@ -1615,27 +1615,6 @@ Layer.prototype.updateBounds = function () {
 	this.height = this.bottom - this.top;
 };
 
-
-
-Layer.prototype.ensureResolutionDivBy4 = function () {
-	alert("Start\nWidth:" + this.width + "\nHeight:"+this.height);
-	// alert(`Start\nWidth:${this.width}\nHeight:${this.height}`);
-	if(this.height % 4 !== 0){
-		
-		this.top += calculatePixelsToAdd(this.top);
-		// this.height = Math.ceil(this.height / 4) * 4;
-		this.height = this.bottom - this.top;
-	}
-
-	if(this.width % 4 !== 0){
-		this.right += calculatePixelsToAdd(this.right);
-		// this.width = Math.ceil(this.width / 4) * 4;
-		this.width = this.right - this.left;;
-	}
-	// alert(`End\nWidth:${this.width}\nHeight:${this.height}`);
-	alert("End\nWidth:" + this.width + "\nHeight:"+this.height);
-};
-
 Layer.prototype.select = function (add) {
 	var ref = new ActionReference();
 	ref.putIdentifier(cID("Lyr "), this.id);

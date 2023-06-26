@@ -33,12 +33,24 @@ var defaultSettings = {
 	writeJson: true,
 	trimWhitespace: true,
 	selectionOnly: false,
+	ensureResolutionDivBy4: false,
 	scale: 1,
 	padding: 1,
 	imagesDir: "./images/",
 	jsonPath: "./",
 };
 loadSettings();
+
+function calculatePixelsToAdd(value) {
+	var remainder = value % 4;
+	var pixelsToAdd = 0;
+
+	if (remainder !== 0) {
+		pixelsToAdd = 4 - remainder;
+	}
+
+	return pixelsToAdd;
+}
 
 function run () {
 	showProgress();
@@ -177,6 +189,12 @@ function run () {
 			bone.x += layer.width * settings.scale / 2 + settings.padding;
 			bone.y = layer.bottom * settings.scale + settings.padding;
 			bone.y -= layer.height * settings.scale / 2 + settings.padding;
+			
+			if(settings.ensureResolutionDivBy4){
+				bone.x += calculatePixelsToAdd(bone.x);
+				bone.y += calculatePixelsToAdd(bone.y);
+			}
+
 			bone.y = docHeight - bone.y;
 			// Make relative to the Photoshop document ruler origin.
 			bone.x -= xOffSet * settings.scale;
@@ -435,10 +453,16 @@ function run () {
 				width = width * settings.scale + settings.padding * 2;
 				height = height * settings.scale + settings.padding * 2;
 
+				if(settings.ensureResolutionDivBy4){
+					width += calculatePixelsToAdd(width);
+					height += calculatePixelsToAdd(height);
+				}
+
+
 				// Save image.
 				if (writeImages) {
 					scaleImage(settings.scale * scale);
-					if (settings.padding > 0) activeDocument.resizeCanvas(width * scale, height * scale, AnchorPosition.MIDDLECENTER);
+					if (settings.padding > 0 || settings.ensureResolutionDivBy4) activeDocument.resizeCanvas(width * scale, height * scale, AnchorPosition.MIDDLECENTER);
 
 					var file = new File(imagesDir + attachmentPath + ".png");
 					file.parent.create();
@@ -622,6 +646,8 @@ function showSettingsDialog () {
 				writeTemplateCheckbox.value = settings.writeTemplate;
 				var selectionOnlyCheckbox = group.add("checkbox", undefined, " Selection only");
 				selectionOnlyCheckbox.value = settings.selectionOnly;
+				var ensureResolutionDivBy4Checkbox = group.add("checkbox", undefined, " Ensure image resolution divided by 4");
+				ensureResolutionDivBy4Checkbox.value = settings.ensureResolutionDivBy4;
 		var scaleText, paddingText, scaleSlider, paddingSlider;
 		if (!cs2) {
 			var slidersGroup = settingsGroup.add("group");
@@ -756,6 +782,8 @@ function showSettingsDialog () {
 		settings.writeJson = writeJsonCheckbox.value;
 		settings.trimWhitespace = trimWhitespaceCheckbox.value;
 		settings.selectionOnly = selectionOnlyCheckbox.value;
+		settings.ensureResolutionDivBy4 = ensureResolutionDivBy4Checkbox.value;
+
 
 		var scaleValue = parseFloat(scaleText.text);
 		if (scaleValue > 0 && scaleValue <= 100) settings.scale = scaleValue / 100;
@@ -1585,6 +1613,27 @@ Layer.prototype.updateBounds = function () {
 	}
 	this.width = this.right - this.left;
 	this.height = this.bottom - this.top;
+};
+
+
+
+Layer.prototype.ensureResolutionDivBy4 = function () {
+	alert("Start\nWidth:" + this.width + "\nHeight:"+this.height);
+	// alert(`Start\nWidth:${this.width}\nHeight:${this.height}`);
+	if(this.height % 4 !== 0){
+		
+		this.top += calculatePixelsToAdd(this.top);
+		// this.height = Math.ceil(this.height / 4) * 4;
+		this.height = this.bottom - this.top;
+	}
+
+	if(this.width % 4 !== 0){
+		this.right += calculatePixelsToAdd(this.right);
+		// this.width = Math.ceil(this.width / 4) * 4;
+		this.width = this.right - this.left;;
+	}
+	// alert(`End\nWidth:${this.width}\nHeight:${this.height}`);
+	alert("End\nWidth:" + this.width + "\nHeight:"+this.height);
 };
 
 Layer.prototype.select = function (add) {

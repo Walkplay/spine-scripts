@@ -189,12 +189,7 @@ function run () {
 			bone.x += layer.width * settings.scale / 2 + settings.padding;
 			bone.y = layer.bottom * settings.scale + settings.padding;
 			bone.y -= layer.height * settings.scale / 2 + settings.padding;
-			
-			if(settings.ensureResolutionDivBy4){
-				bone.x += calculatePixelsToAdd(bone.x);
-				bone.y += calculatePixelsToAdd(bone.y);
-			}
-
+		
 			bone.y = docHeight - bone.y;
 			// Make relative to the Photoshop document ruler origin.
 			bone.x -= xOffSet * settings.scale;
@@ -452,13 +447,15 @@ function run () {
 				}
 				width = width * settings.scale + settings.padding * 2;
 				height = height * settings.scale + settings.padding * 2;
-
+				
+				var extraPixW = calculatePixelsToAdd(width);
+				var extraPixH = calculatePixelsToAdd(height);
+				
 				if(settings.ensureResolutionDivBy4){
-					width += calculatePixelsToAdd(width);
-					height += calculatePixelsToAdd(height);
+					width += extraPixW;
+					height += extraPixH;
 				}
-
-
+				
 				// Save image.
 				if (writeImages) {
 					scaleImage(settings.scale * scale);
@@ -473,8 +470,14 @@ function run () {
 				if (layerCount < totalLayerCount) layer.hide();
 
 				var center = mesh ? 0 : 0.5;
-				x += Math.round(width) * center - settings.padding;
-				y = docHeightCropped - (y + Math.round(height) * center - settings.padding);
+				if(settings.ensureResolutionDivBy4){
+					x += Math.round(width - extraPixW) * center - settings.padding + ((extraPixW % 2) * 0.5);
+					y = docHeightCropped - (y + Math.round(height - extraPixH) * center - settings.padding) - (extraPixH % 2) * 0.5;
+				}
+				else{
+					x += Math.round(width) * center - settings.padding ;
+					y = docHeightCropped - (y + Math.round(height) * center - settings.padding);
+				}
 				width = Math.round(width * scale);
 				height = Math.round(height * scale);
 
